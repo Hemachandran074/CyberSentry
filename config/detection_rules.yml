@@ -1,49 +1,210 @@
-# Detection-as-code. Every rule carries its ATT&CK mapping and a version.
-rules:  
-  - code: DR001_BRUTE_FORCE    
-    version: 1    
-    title: Repeated failed authentication from a single source    
-    attack_technique: T1110    
-    attack_tactic: credential-access    
-    base_severity: medium    
-    params: { failures: 15, window_minutes: 5 }   
+# CyberSentry Detection-as-Code Rules Catalogue
+# Single source of truth for detection rules mapped to MITRE ATT&CK techniques.
 
-  - code: DR002_IMPOSSIBLE_TRAVEL    
-    version: 1    
-    title: Successful logins from geographically impossible locations    
-    attack_technique: T1078    
-    attack_tactic: initial-access    
-    base_severity: high    
-    params: { max_kph: 900 }   
+rules:
+  - code: DR001_BRUTE_FORCE
+    version: 1
+    title: Repeated failed authentication attempts from a single source
+    attack_technique: T1110
+    attack_tactic: credential-access
+    base_severity: medium
+    params:
+      failures: 15
+      window_minutes: 5
 
-  - code: DR003_LSASS_ACCESS    
-    version: 1    
-    title: Non-system process opened a handle to LSASS    
-    attack_technique: T1003.001    
-    attack_tactic: credential-access    
-    base_severity: critical    
-    params: {}   
+  - code: DR002_IMPOSSIBLE_TRAVEL
+    version: 1
+    title: Successful authentication events from geographically disparate locations
+    attack_technique: T1078
+    attack_tactic: initial-access
+    base_severity: high
+    params:
+      max_kph: 900
 
-  - code: DR004_ENCODED_POWERSHELL    
-    version: 1    
-    title: PowerShell executed with an encoded command    
-    attack_technique: T1059.001    
-    attack_tactic: execution    
-    base_severity: high    
-    params: { min_length: 120 }   
+  - code: DR003_LSASS_ACCESS
+    version: 1
+    title: Non-system process opened a handle to LSASS process memory
+    attack_technique: T1003.001
+    attack_tactic: credential-access
+    base_severity: critical
+    params: {}
 
-  - code: DR005_DNS_TUNNEL    
-    version: 1    
-    title: Anomalous DNS query volume and entropy to a single domain    
-    attack_technique: T1071.004    
-    attack_tactic: command-and-control    
-    base_severity: high    
-    params: { queries_per_minute: 60, min_entropy: 3.5 }   
-    
-  - code: DR006_CLOUD_KEY_CREATED    
-    version: 1    
-    title: New access key created for a privileged identity    
-    attack_technique: T1098    
-    attack_tactic: persistence    
-    base_severity: medium    
-    params: {}  
+  - code: DR004_ENCODED_POWERSHELL
+    version: 1
+    title: Execution of PowerShell process containing base64 encoded command arguments
+    attack_technique: T1059.001
+    attack_tactic: execution
+    base_severity: high
+    params:
+      min_length: 120
+
+  - code: DR005_DNS_TUNNEL
+    version: 1
+    title: Anomalous volume and high Shannon entropy in DNS requests to target domain
+    attack_technique: T1071.004
+    attack_tactic: command-and-control
+    base_severity: high
+    params:
+      queries_per_minute: 60
+      min_entropy: 3.5
+
+  - code: DR006_CLOUD_KEY_CREATED
+    version: 1
+    title: Creation of permanent cloud access credential for privileged identity
+    attack_technique: T1098
+    attack_tactic: persistence
+    base_severity: medium
+    params: {}
+
+  - code: DR007_PORT_SCAN
+    version: 1
+    title: Single source address connecting to multiple distinct ports across internal endpoints
+    attack_technique: T1046
+    attack_tactic: discovery
+    base_severity: low
+    params:
+      unique_ports: 50
+
+  - code: DR008_LARGE_EGRESS
+    version: 1
+    title: Abnormal outbound network transfer volume to unclassified external address
+    attack_technique: T1041
+    attack_tactic: exfiltration
+    base_severity: high
+    params:
+      mb_threshold: 500
+
+  - code: DR009_RDP_LATERAL_MOVEMENT
+    version: 1
+    title: Lateral traversal via Remote Desktop Protocol across multiple internal hosts
+    attack_technique: T1021.001
+    attack_tactic: lateral-movement
+    base_severity: high
+    params:
+      distinct_hosts: 3
+      window_minutes: 30
+
+  - code: DR010_SMB_ADMIN_SHARE
+    version: 1
+    title: Remote connection to administrative network share via SMB
+    attack_technique: T1021.002
+    attack_tactic: lateral-movement
+    base_severity: high
+    params: {}
+
+  - code: DR011_SCHEDULED_TASK_CREATED
+    version: 1
+    title: Creation of persistent scheduled task via schtasks or task scheduler API
+    attack_technique: T1053.005
+    attack_tactic: persistence
+    base_severity: medium
+    params: {}
+
+  - code: DR012_RUN_KEY_PERSISTENCE
+    version: 1
+    title: Registry modification within Run or RunOnce startup key path
+    attack_technique: T1547.001
+    attack_tactic: persistence
+    base_severity: medium
+    params: {}
+
+  - code: DR013_PROCESS_INJECTION
+    version: 1
+    title: Cross-process memory manipulation indicating reflective DLL or shellcode injection
+    attack_technique: T1055
+    attack_tactic: defense-evasion
+    base_severity: high
+    params: {}
+
+  - code: DR014_EVENT_LOG_CLEARED
+    version: 1
+    title: Tampering with or clearing of Windows Security or System event logs
+    attack_technique: T1070.001
+    attack_tactic: defense-evasion
+    base_severity: high
+    params: {}
+
+  - code: DR015_RUNDLL32_ABUSE
+    version: 1
+    title: Rundll32 executing without parameters or invoking uncommon export routines
+    attack_technique: T1218.011
+    attack_tactic: defense-evasion
+    base_severity: medium
+    params: {}
+
+  - code: DR016_INGRESS_TOOL_TRANSFER
+    version: 1
+    title: Download of external administrative or offensive binary tooling onto host
+    attack_technique: T1105
+    attack_tactic: command-and-control
+    base_severity: medium
+    params: {}
+
+  - code: DR017_LOCAL_ACCOUNT_CREATED
+    version: 1
+    title: Unscheduled creation of local user account on endpoint or server
+    attack_technique: T1136.001
+    attack_tactic: persistence
+    base_severity: medium
+    params: {}
+
+  - code: DR018_UAC_BYPASS
+    version: 1
+    title: Execution of high-integrity process bypassing User Account Control prompt
+    attack_technique: T1548.002
+    attack_tactic: privilege-escalation
+    base_severity: high
+    params: {}
+
+  - code: DR019_DOMAIN_ACCOUNT_DISCOVERY
+    version: 1
+    title: High frequency domain enumeration queries targeting Active Directory users
+    attack_technique: T1087.002
+    attack_tactic: discovery
+    base_severity: low
+    params:
+      queries: 20
+      window_minutes: 10
+
+  - code: DR020_KERBEROASTING
+    version: 1
+    title: Elevated volume of Kerberos TGS ticket requests with RC4 encryption
+    attack_technique: T1558.003
+    attack_tactic: credential-access
+    base_severity: high
+    params:
+      tgs_requests: 10
+      window_minutes: 5
+
+  - code: DR021_EXFIL_ALT_PROTOCOL
+    version: 1
+    title: Data exfiltration detected over alternative network application protocol
+    attack_technique: T1048
+    attack_tactic: exfiltration
+    base_severity: high
+    params:
+      mb_threshold: 200
+
+  - code: DR022_SECURITY_TOOL_DISABLED
+    version: 1
+    title: Termination or service disruption of endpoint security or monitoring agent
+    attack_technique: T1562.001
+    attack_tactic: defense-evasion
+    base_severity: high
+    params: {}
+
+  - code: DR023_SHADOW_COPY_DELETE
+    version: 1
+    title: Execution of vssadmin or wmic attempting volume shadow copy deletion
+    attack_technique: T1490
+    attack_tactic: impact
+    base_severity: critical
+    params: {}
+
+  - code: DR024_PHISHING_ATTACHMENT_EXEC
+    version: 1
+    title: Direct process execution spawned from office document or email client payload
+    attack_technique: T1566.001
+    attack_tactic: initial-access
+    base_severity: high
+    params: {}

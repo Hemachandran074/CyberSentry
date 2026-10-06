@@ -1,17 +1,27 @@
-services: 
+name: cybersentry
+
+services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
+    container_name: cybersentry-zookeeper
+    restart: unless-stopped
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_OPTS: "-Dzookeeper.4lw.commands.whitelist=ruok"
     healthcheck:
-      test: ["CMD-SHELL", "echo ruok | nc -w 2 localhost 2181 | grep imok"]
+      test: ["CMD-SHELL", "echo ruok | nc -w 2 localhost 2181 | grep imok || exit 1"]
       interval: 10s
+      timeout: 5s
       retries: 6
-    networks: [sentrynet]
+      start_period: 15s
+    networks:
+      - sentrynet
 
   kafka:
     image: confluentinc/cp-kafka:7.6.0
+    container_name: cybersentry-kafka
+    restart: unless-stopped
     depends_on:
       zookeeper:
         condition: service_healthy
@@ -24,24 +34,33 @@ services:
       KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
     healthcheck:
       test: ["CMD", "kafka-topics", "--bootstrap-server", "kafka:29092", "--list"]
       interval: 15s
+      timeout: 10s
       retries: 8
-    networks: [sentrynet]
+      start_period: 30s
+    networks:
+      - sentrynet
 
   opensearch:
     image: opensearchproject/opensearch:2.14.0
+    container_name: cybersentry-opensearch
+    restart: unless-stopped
     environment:
       discovery.type: single-node
-      bootstrap.memory_lock: 'true'
-      OPENSEARCH_JAVA_OPTS: -Xms1g -Xmx1g
-      DISABLE_SECURITY_PLUGIN: 'true'   # dev only — never in production
+      bootstrap.memory_lock: "true"
+      OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
+      DISABLE_SECURITY_PLUGIN: "true"   # DEV ONLY — never disable security in production environments
       OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-Sentry_Dev_2026!}
     ulimits:
-      memlock: { soft: -1, hard: -1 }
-      nofile: { soft: 65536, hard: 65536 }
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
     ports:
       - "9200:9200"
     volumes:
@@ -49,11 +68,16 @@ services:
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health || exit 1"]
       interval: 20s
+      timeout: 10s
       retries: 8
-    networks: [sentrynet]
+      start_period: 40s
+    networks:
+      - sentrynet
 
   postgres:
     image: postgres:16-alpine
+    container_name: cybersentry-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER:-sentry}
       POSTGRES_PASSWORD: ${DB_PASS:-sentry_dev_2026}
@@ -64,13 +88,18 @@ services:
       - pg_data:/var/lib/postgresql/data
       - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-sentry} -d ${DB_NAME:-cybersentry}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-sentry} -d $${POSTGRES_DB:-cybersentry}"]
       interval: 10s
+      timeout: 5s
       retries: 6
-    networks: [sentrynet]
+      start_period: 15s
+    networks:
+      - sentrynet
 
   redis:
     image: redis:7-alpine
+    container_name: cybersentry-redis
+    restart: unless-stopped
     command: redis-server --appendonly yes
     ports:
       - "6379:6379"
@@ -79,11 +108,16 @@ services:
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
+      timeout: 5s
       retries: 5
-    networks: [sentrynet]
+      start_period: 10s
+    networks:
+      - sentrynet
 
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.14.1
+    container_name: cybersentry-mlflow
+    restart: unless-stopped
     command: >
       mlflow server --host 0.0.0.0 --port 5000
       --backend-store-uri sqlite:////mlflow/mlflow.db
@@ -92,7 +126,14 @@ services:
       - "5000:5000"
     volumes:
       - mlflow_data:/mlflow
-    networks: [sentrynet]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - sentrynet
 
 volumes:
   pg_data:

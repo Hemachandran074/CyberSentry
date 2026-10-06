@@ -1,0 +1,6 @@
+psycopg[binary]
+pyyaml
+pytest
+black
+flake8
+dvc

@@ -8,15 +8,17 @@ venv/
 .mypy_cache/
 .coverage
 htmlcov/
+
 # ---- Environment ---
-.env
-.env.local
-*.local.yml
+.env*
+!.env.example
+
 # ---- Editors / OS ---
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
 # ---- Model artefacts ---
 *.pt
 *.pth
@@ -26,16 +28,19 @@ Thumbs.db
 *.joblib
 mlruns/
 mlartifacts/
+
 # ---- Data (tracked by DVC, not Git) ---
 data/raw/*
 data/interim/*
 data/processed/*
 !data/**/.gitkeep
 !data/**/*.dvc
+
 # ---- Docker / infra ---
 docker-compose.override.yml
 *.log
 logs/
+
 # ---- CyberSentry specific ---
 # Telemetry contains hostnames, usernames and IP addresses
 data/raw/telemetry/*
@@ -47,3 +52,7 @@ data/raw/telemetry/*
 *.pem
 opensearch-data/
 kafka-data/
+
+# ---- Reference inputs & workspace notes ---
+_inputs/
+context/

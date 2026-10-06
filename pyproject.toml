@@ -1,0 +1,12 @@
+[tool.black]
+line-length = 100
+skip-string-normalization = true
+exclude = '''
+/(
+    \.git
+  | \.venv
+  | data
+  | _inputs
+  | mlruns
+)/
+'''
