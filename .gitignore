@@ -19,7 +19,7 @@ htmlcov/
 .DS_Store
 Thumbs.db
 
-# ---- Model artefacts ---
+# ---- Model artefacts & M2 evaluation outputs ---
 *.pt
 *.pth
 *.h5
@@ -28,11 +28,13 @@ Thumbs.db
 *.joblib
 mlruns/
 mlartifacts/
+artifacts/
+reports/
 
 # ---- Data (tracked by DVC, not Git) ---
 data/raw/*
 data/interim/*
-data/processed/*
+data/processed/
 !data/**/.gitkeep
 !data/**/*.dvc
 
