@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sentry-libs"
+version = "0.2.0"
+description = "CyberSentry shared domain models, scoring engines, and feature definitions"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["sentry_domain*", "sentry_features*"]

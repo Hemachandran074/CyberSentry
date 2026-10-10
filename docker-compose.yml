@@ -1,6 +1,9 @@
 name: cybersentry
 
 services:
+  # ============================================================
+  # CORE INFRASTRUCTURE PLANE (M1 Baseline)
+  # ============================================================
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.0
     container_name: cybersentry-zookeeper
@@ -132,6 +135,127 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+    networks:
+      - sentrynet
+
+  # ============================================================
+  # AGENT & MICROSERVICE PLANE (M2 Activation)
+  # Built with root context '.' so containers can install libs/
+  # ============================================================
+  log_collector:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: services/log_collector/Dockerfile
+    container_name: cybersentry-log-collector
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      KAFKA_BOOTSTRAP: kafka:29092
+      TOPIC_RAW: sec.raw
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - sentrynet
+
+  normalizer:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: services/normalizer/Dockerfile
+    container_name: cybersentry-normalizer
+    restart: unless-stopped
+    environment:
+      KAFKA_BOOTSTRAP: kafka:29092
+      TOPIC_RAW: sec.raw
+      TOPIC_NORMALIZED: sec.normalized
+      OPENSEARCH_URL: http://opensearch:9200
+      REDIS_URL: redis://redis:6379/0
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: cybersentry
+      DB_USER: sentry
+      DB_PASS: sentry_dev_2026
+    depends_on:
+      kafka:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - sentrynet
+
+  detection_engine:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: services/detection_engine/Dockerfile
+    container_name: cybersentry-detection-engine
+    restart: unless-stopped
+    environment:
+      KAFKA_BOOTSTRAP: kafka:29092
+      TOPIC_NORMALIZED: sec.normalized
+      TOPIC_DETECTIONS: sec.detections
+      REDIS_URL: redis://redis:6379/0
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: cybersentry
+      DB_USER: sentry
+      DB_PASS: sentry_dev_2026
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - sentrynet
+
+  correlation_agent:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: services/correlation_agent/Dockerfile
+    container_name: cybersentry-correlation-agent
+    restart: unless-stopped
+    environment:
+      KAFKA_BOOTSTRAP: kafka:29092
+      TOPIC_DETECTIONS: sec.detections
+      REDIS_URL: redis://redis:6379/0
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: cybersentry
+      DB_USER: sentry
+      DB_PASS: sentry_dev_2026
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - sentrynet
+
+  response_agent:
+    profiles: ["app"]
+    build:
+      context: .
+      dockerfile: services/response_agent/Dockerfile
+    container_name: cybersentry-response-agent
+    restart: unless-stopped
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: cybersentry
+      DB_USER: sentry
+      DB_PASS: sentry_dev_2026
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - sentrynet
 
