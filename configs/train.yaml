@@ -1,0 +1,37 @@
+# CyberSentry Milestone 2 - Training and HPO Experiment Configuration
+experiment: cybersentry-m2
+run_name: lgbm-default
+
+simulate:
+  n_users: 300
+  n_comps: 150
+  n_steps: 720            # 30 days of hourly telemetry
+  n_scenarios: 30         # alternating T1110 brute force and T1021 lateral movement
+
+split:
+  train_end_step: 480     # days 1-20
+  val_end_step: 576       # days 21-24; test = days 25-30
+  embargo_steps: 24       # 24-hour embargo interval between splits
+
+triage_budget: 0.01       # tier-1 analysts review top 1% of prioritized events
+
+model:
+  n_estimators: 2000
+  learning_rate: 0.05
+  num_leaves: 63
+  min_child_samples: 50
+  subsample: 0.8
+  colsample_bytree: 0.8
+  reg_lambda: 1.0
+  scale_pos_weight: 5     # partial re-weighting for extreme class imbalance
+
+hpo:
+  metric: val_pr_auc
+  direction: maximize
+  space:
+    learning_rate: [log, 0.01, 0.15]
+    num_leaves: [int, 15, 255]
+    min_child_samples: [int, 20, 500]
+    colsample_bytree: [float, 0.4, 1.0]
+    scale_pos_weight: [log, 1, 50]
+    reg_lambda: [log, 0.001, 10]
