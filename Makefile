@@ -129,3 +129,31 @@ verify-m2:
 m2: extract test-m2 train evaluate promote writeback verify-m2
 
 .PHONY: mlflow-up migrate-m2 extract test-m2 baseline train hpo evaluate promote writeback verify-m2 m2
+
+# ---- M3 targets: append below the M2 block. .RECIPEPREFIX applies only to rules
+# written after it, so M1 and M2's tab-indented rules keep working and every M3
+# rule survives being copied out of this PDF. ----
+.RECIPEPREFIX = >
+PY ?= python
+M3_PATH := PYTHONPATH=ml/src:services/detection/src:.
+fit-baselines:
+> dvc repro fit_baselines
+train-sequence:
+> dvc repro train_sequence
+compare-sequence:
+> $(M3_PATH) $(PY) -m cybersentry_ml.sequence.run_compare
+fit-fusion:
+> dvc repro fit_fusion
+migrate-m3:
+> $(M3_PATH) alembic upgrade head
+replay:
+> $(M3_PATH) $(PY) -m detection.replay --speed $(SPEED) --scenario $(SCENARIO)
+test-m3:
+> $(M3_PATH) $(PY) -m pytest -q tests/m3/unit
+test-m3-int:
+> $(M3_PATH) $(PY) -m pytest -q tests/m3/integration
+verify-m3:
+> $(M3_PATH) $(PY) scripts/verify_m3.py
+m3: test-m3 fit-baselines train-sequence compare-sequence fit-fusion test-m3-int verify-m3
+.PHONY: fit-baselines train-sequence compare-sequence fit-fusion migrate-m3 \
+        replay test-m3 test-m3-int verify-m3 m3

@@ -1,0 +1,31 @@
+# CyberSentry Milestone 3 Configuration Parameters
+
+baselines:
+  window_days: 30
+  min_events: 50           # below this an entity gets no baseline at all
+  laplace: 1.0             # a never-seen value is rare, never impossible
+  peer_k: 8
+  min_cluster_size: 8      # smaller clusters are dissolved to singletons
+  seed: 42
+
+sequence:
+  seed: 42
+  max_len: 128
+  min_action_count: 5      # rarer actions collapse to UNK
+  embed: 64
+  hidden: 128
+  layers: 2
+  dropout: 0.1
+  batch_size: 128
+  lr: 0.001
+  epochs: 25
+  patience: 4
+  min_pr_auc_lift: 0.20    # objective 5.3 vs the frequency baseline
+
+fusion:
+  weight_grid: [0.0, 0.25, 0.5, 0.75, 1.0]
+  target_recall: 0.85      # objective 5.1 detection coverage
+  tiers:
+    crown_jewel: {open: 0.45, close: 0.30}
+    high: {open: 0.60, close: 0.45}
+    standard: {open: 0.75, close: 0.60}
