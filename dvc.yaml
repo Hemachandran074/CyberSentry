@@ -1,0 +1,13 @@
+stages:
+  fit_baselines:
+    cmd: python -m cybersentry_ml.baselines.fit_baselines
+    deps:
+      - ml/src/cybersentry_ml/baselines/fit_baselines.py
+      - ml/src/cybersentry_ml/baselines/profile.py
+      - ml/src/cybersentry_ml/baselines/peers.py
+      - ml/src/cybersentry_ml/labels.py
+    params:
+      - baselines
+    outs:
+      - reports/m3_baselines_summary.json:
+          cache: false
