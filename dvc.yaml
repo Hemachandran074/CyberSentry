@@ -11,3 +11,16 @@ stages:
     outs:
       - reports/m3_baselines_summary.json:
           cache: false
+  train_sequence:
+    cmd: python -m cybersentry_ml.sequence.train_sequence
+    deps:
+      - ml/src/cybersentry_ml/sequence/train_sequence.py
+      - ml/src/cybersentry_ml/sequence/model.py
+      - ml/src/cybersentry_ml/labels.py
+    params:
+      - sequence
+    outs:
+      - artifacts/cybersentry_sequence.pt:
+          cache: false
+      - artifacts/sequence_calibration.json:
+          cache: false
